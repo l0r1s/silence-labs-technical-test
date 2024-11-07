@@ -40,9 +40,9 @@ impl DLogProof {
 
     /// Verifies a Schorr ZK DLOG Proof using the discrete logarithm `x` of y = x*G
     /// without revealing x.
-    /// 
+    ///
     /// `sid` is session ID and `pid` is participant ID.
-    /// 
+    ///
     /// Returns `true` if the proof is valid, `false` otherwise.
     pub fn verify(&self, sid: &str, pid: u32, y: ProjectivePoint) -> bool {
         let c = Self::hash_points(sid, pid, &[ProjectivePoint::GENERATOR, y, self.t]);
