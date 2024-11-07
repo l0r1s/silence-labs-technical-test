@@ -3,7 +3,7 @@ use std::{collections::HashMap, io, sync::Arc, time::Duration};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::{IntoResponse, Response},
+    response::IntoResponse,
     routing::post,
     Router,
 };
@@ -108,6 +108,7 @@ mod tests {
     use axum::{
         body::{Body, Bytes},
         http::Request,
+        response::Response,
         routing::{future::RouteFuture, RouterIntoService},
     };
     use http_body_util::BodyExt;
