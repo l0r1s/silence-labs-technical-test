@@ -1,0 +1,10 @@
+[package]
+name = "dlog-proof"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+elliptic-curve = { version = "0.13.8", features = ["sec1", "serde"] }
+k256 = { version = "0.13.4", features = ["serde"] }
+serde = { version = "1.0.214", features = ["derive"] }
+serde_json = "1.0.132"
