@@ -1,3 +1,5 @@
+# WASM Websocket
+
 ## Installation steps
 
 `wasm-pack` is required to build the Rust code into WASM:
