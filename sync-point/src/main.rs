@@ -11,6 +11,7 @@ use tokio::{
     sync::{Notify, RwLock},
     time::timeout,
 };
+use tracing::{info, warn};
 
 static INBOUND_MESSAGE: &str = "Hooray! Another party is connected!\n";
 static OUTBOUND_MESSAGE: &str = "Yippee! We connected to another party!\n";
@@ -60,10 +61,13 @@ async fn sync_parties(
     let mut waiting_parties = state.waiting_parties.write().await;
 
     if let Some(party) = waiting_parties.take(unique_id) {
+        info!(unique_id, "Found matching party");
         // Simply notify the other waiting party
         party.notify_one();
+
         (StatusCode::OK, OUTBOUND_MESSAGE.to_string()).into_response()
     } else {
+        info!(unique_id, "Waiting for another party");
         // There is no waiting party for this id, so we are the one waiting
         let party = waiting_parties.insert(unique_id);
 
@@ -72,8 +76,12 @@ async fn sync_parties(
 
         // We will wait patiently up to 10 seconds for someone else to connect
         match timeout(state.wait_timeout, party.notified()).await {
-            Ok(_) => (StatusCode::OK, INBOUND_MESSAGE.to_string()).into_response(),
+            Ok(_) => {
+                info!(unique_id, "Successfully synchronized parties");
+                (StatusCode::OK, INBOUND_MESSAGE.to_string()).into_response()
+            }
             Err(_) => {
+                warn!(unique_id, "Timeout waiting for other party");
                 // In case we timed out, we clean up the previously stored waiting party.
                 state.waiting_parties.write().await.remove(unique_id);
                 (StatusCode::REQUEST_TIMEOUT, TIMEOUT_MESSAGE.to_string()).into_response()
@@ -84,8 +92,15 @@ async fn sync_parties(
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
+    tracing_subscriber::fmt()
+        .with_target(false)
+        .compact()
+        .init();
+
     let (app, _state) = make_app(Duration::from_secs(10));
+
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
+    info!("Listening on {}", listener.local_addr().unwrap());
 
     Ok(axum::serve(listener, app).await?)
 }
